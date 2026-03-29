@@ -23,7 +23,9 @@ export async function getRelevantEarnings(
 
   // 2. Build openTickers set
   const openTickers = new Set(
-    openPositions.map((pos) => (pos.ticker ? pos.ticker.toUpperCase() : null)).filter(Boolean)
+    openPositions
+      .map((pos) => (pos.ticker ? pos.ticker.toUpperCase() : null))
+      .filter((t): t is string => !!t)
   )
 
   // 3. Build underlying exposure and exposureMap

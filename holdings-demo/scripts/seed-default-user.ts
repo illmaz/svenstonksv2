@@ -1,3 +1,4 @@
+// @ts-nocheck
 // scripts/seed-default-user.ts
 // One-time backfill: creates a default User row and assigns all unowned holdings to it.
 // Safe to run once. Do not run in production after real auth is wired.

@@ -1,10 +1,19 @@
 import { fetchNewsFromRSS } from "@/lib/news/fetchNewsFromRSS"
 import { NewsItem } from "@/lib/news/news"
 
+export type RelevantNewsItem = {
+  id: string
+  title: string
+  body: string
+  tickers: string[]
+  date: string
+  relevance: number
+}
+
 export async function getRelevantNews(
   openPositions: Array<{ ticker: string | null }>,
   underlyingExposure: Array<{ ticker: string | null; exposurePctOfPortfolio: number }>
-) {
+): Promise<RelevantNewsItem[]> {
   const newsItems = await fetchNewsFromRSS()
 
   // Build sets of tickers (uppercase, non-null, non-empty)
@@ -40,31 +49,17 @@ export async function getRelevantNews(
           body: item.body,
           tickers: item.tickers,
           date: item.date,
-          url: item.url,
-          relevance
+          relevance,
         }
       }
       return null
     })
-    .filter((x: {
-      id: string
-      title: string
-      body: string
-      tickers: string[]
-      date: string
-      relevance: number
-    } | null): x is {
-      id: string
-      title: string
-      body: string
-      tickers: string[]
-      date: string
-      relevance: number
-    } => x !== null)
-    .sort((a: { relevance: number; date: string }, b: { relevance: number; date: string }) => {
-      if (b.relevance !== a.relevance) return b.relevance - a.relevance
-      return new Date(b.date).getTime() - new Date(a.date).getTime()
-    })
+    .filter((x): x is RelevantNewsItem => x !== null)
+
+  matched.sort((a, b) => {
+    if (b.relevance !== a.relevance) return b.relevance - a.relevance
+    return new Date(b.date).getTime() - new Date(a.date).getTime()
+  })
 
   return matched
 }

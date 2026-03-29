@@ -1,5 +1,3 @@
-import { Prisma } from "@prisma/client"
-
 import { prisma } from "@/lib/prisma"
 
 export async function POST(req: Request) {
@@ -98,13 +96,17 @@ export async function POST(req: Request) {
   } catch (error: unknown) {
     console.error("Create asset mapping error:", error)
 
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        return Response.json(
-          { error: "An asset mapping with this unique field already exists" },
-          { status: 409 }
-        )
-      }
+    const isP2002 =
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: string }).code === "P2002"
+
+    if (isP2002) {
+      return Response.json(
+        { error: "An asset mapping with this unique field already exists" },
+        { status: 409 }
+      )
     }
 
     return Response.json(
