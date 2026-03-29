@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  externalId    String    @unique
+  displayName   String?
+  email         String?
+  createdAt     DateTime  @default(now())
+  username      String    @unique
+  passwordHash  String
+
+  holdings    Holding[]
+}
+
+model Holding {
+  id          String    @id @default(uuid())
+  ticker      String?
+  shares      Float
+  avgPrice    Float
+  createdAt   DateTime  @default(now())
+  exchange    String?
+  isin        String?
+  productName String?
+  executedAt  DateTime?
+  orderId     String?
+
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model AssetMapping {
+  id          String   @id @default(uuid())
+  isin        String?  @unique
+  productName String?
+  ticker      String?
+  region      String
+  category    String
+  createdAt   DateTime @default(now())
+}
+
+model UnmappedAsset {
+  id          String   @id @default(uuid())
+  isin        String?
+  productName String?
+  exchange    String?
+  source      String?
+  createdAt   DateTime @default(now())
+}
+
+model PriceCache {
+  id        String    @id @default(uuid())
+  ticker    String
+  exchange  String?
+  price     Float
+  currency  String
+  priceAsOf DateTime?
+  fetchedAt DateTime
+  provider  String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([ticker, exchange])
+}
