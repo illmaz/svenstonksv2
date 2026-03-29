@@ -22,7 +22,7 @@ export async function GET() {
     // --- Transactions (all activity) ---
 
     const transactions = rows
-      .map((r) => ({
+      .map((r: (typeof rows)[number]) => ({
         id: r.id,
         ticker: r.ticker,
         productName: r.productName,
