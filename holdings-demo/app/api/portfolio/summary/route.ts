@@ -57,8 +57,8 @@ export async function GET() {
     const STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000
     const now = Date.now()
     const staleAssets = cachedPrices
-      .filter(p => now - new Date(p.fetchedAt).getTime() > STALE_THRESHOLD_MS)
-      .map(p => p.ticker)
+      .filter((p: { fetchedAt: Date | string; ticker: string }) => now - new Date(p.fetchedAt).getTime() > STALE_THRESHOLD_MS)
+      .map((p: { fetchedAt: Date | string; ticker: string }) => p.ticker)
 
     const currencyByAssetKey = new Map<string, string>()
     for (const row of cachedPrices) {
