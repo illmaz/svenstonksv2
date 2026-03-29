@@ -268,15 +268,15 @@ export default function TransactionsPage() {
           }}>
             EF
           </div>
-          <form method="POST" action="/api/auth/logout" style={{ margin: 0 }}>
-            <button type="submit" style={{
-              marginLeft: 8, fontSize: 12, color: "var(--color-text-secondary)",
-              background: "none", border: "none", cursor: "pointer", padding: "4px 8px",
-            }}>
-              sign out
-            </button>
-          </form>
         </div>
+        <form method="POST" action="/api/auth/logout" style={{ margin: 0 }}>
+          <button type="submit" style={{
+            fontSize: 12, color: "var(--color-text-secondary)",
+            background: "none", border: "none", cursor: "pointer", padding: "4px 8px",
+          }}>
+            sign out
+          </button>
+        </form>
       </nav>
 
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "40px 24px 80px" }}>
