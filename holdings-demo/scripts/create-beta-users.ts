@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { hashPassword } from "@/lib/auth/hash"
 
 const BETA_USERS = [
+  { username: "efe",     displayName: "Efe",     password: "efe123"     },
   { username: "breen",   displayName: "Breen",   password: "breen123"   },
   { username: "merdi",   displayName: "Merdi",   password: "merdi123"   },
   { username: "rubbert", displayName: "Rubbert", password: "rubbert123" },
