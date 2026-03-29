@@ -31,8 +31,8 @@ type Summary = {
   lossCount: number
   winRate: number | null
   averageHoldingDays: number | null
-  avgWinEUR: number | null
-  avgLossEUR: number | null
+  avgWin: number | null
+  avgLoss: number | null
   totalDeployed: number
 }
 
@@ -48,12 +48,11 @@ type LosersCostItem = {
   dailyCost: number
   holdingDays: number
   realizedPnL: number
-  entryAt: string | null
   exitAt: string | null
 }
 
 type LosersCost = {
-  averageDailyCost: number | null
+  averageDailyCost: number
   worstOffender: LosersCostItem | null
   items: LosersCostItem[]
 }
@@ -63,12 +62,10 @@ type BestMissedMove = {
   productName: string | null
   exitPrice: number
   currentPrice: number
-  sharesClosed: number
   realizedPnL: number
   missedUpside: number
   exitAt: string | null
   priceAsOf: string | null
-  currency: string | null
 }
 
 type PostSaleItem = {
@@ -76,22 +73,18 @@ type PostSaleItem = {
   productName: string | null
   exitPrice: number
   currentPrice: number
-  sharesClosed: number
   realizedPnL: number
   deltaSinceExit: number
   deltaSinceExitPct: number
-  hypotheticalPnL: number
   outcome: "continued_up" | "reversed_down" | "roughly_flat"
   exitAt: string | null
   priceAsOf: string | null
-  currency: string | null
 }
 
 type ReviewData = {
   transactions: Transaction[]
   closedTrades: ClosedTrade[]
   summary: Summary
-  insight: { title: string | null; body: string | null }
   personality: Personality | null
   losersCost: LosersCost | null
   bestMissedMove: BestMissedMove | null
@@ -178,18 +171,15 @@ export default function TransactionsPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        // Load cached data immediately so the page isn't blank
         const initial = await fetch("/api/transactions/review").then((r) => r.json())
         setData(initial)
         setLoading(false)
 
-        // Refresh prices in the background, then reload with fresh numbers
         setPricesRefreshing(true)
         await fetch("/api/prices/refresh")
         const fresh = await fetch("/api/transactions/review").then((r) => r.json())
         setData(fresh)
       } catch {
-        // silently fall back to whatever data we have
       } finally {
         setPricesRefreshing(false)
       }
@@ -225,13 +215,13 @@ export default function TransactionsPage() {
     },
     {
       label: "Avg win (€)",
-      value: loading ? "—" : fmtCurrency(s?.avgWinEUR ?? null),
-      color: s?.avgWinEUR != null ? "var(--color-success)" : "var(--color-text-primary)",
+      value: loading ? "—" : fmtCurrency(s?.avgWin ?? null),
+      color: s?.avgWin != null ? "var(--color-success)" : "var(--color-text-primary)",
     },
     {
       label: "Avg loss (€)",
-      value: loading ? "—" : fmtCurrency(s?.avgLossEUR ?? null),
-      color: s?.avgLossEUR != null ? "var(--color-danger)" : "var(--color-text-primary)",
+      value: loading ? "—" : fmtCurrency(s?.avgLoss ?? null),
+      color: s?.avgLoss != null ? "var(--color-danger)" : "var(--color-text-primary)",
     },
     {
       label: "Avg holding period",
@@ -249,8 +239,6 @@ export default function TransactionsPage() {
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "var(--color-bg)", fontFamily: "var(--font-sans)" }}>
-
-      {/* NAV */}
       <nav style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0 32px", height: 56,
@@ -283,10 +271,7 @@ export default function TransactionsPage() {
         </div>
       </nav>
 
-      {/* CONTENT */}
       <div style={{ maxWidth: 860, margin: "0 auto", padding: "40px 24px 80px" }}>
-
-        {/* PAGE HEADER */}
         <div style={{ marginBottom: 28 }}>
           <p style={{ fontSize: 22, fontWeight: 500, color: "var(--color-text-primary)", margin: "0 0 6px" }}>
             Trade review
@@ -296,7 +281,6 @@ export default function TransactionsPage() {
           </p>
         </div>
 
-        {/* SUMMARY STRIP */}
         <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 36 }}>
           {summaryStats.map((stat) => (
             <div key={stat.label} style={{
@@ -315,7 +299,6 @@ export default function TransactionsPage() {
           ))}
         </section>
 
-        {/* 1 — TRADING PERSONALITY */}
         {!loading && (
           <section style={{ marginBottom: 36 }}>
             <p style={{ fontSize: 11, color: "var(--color-text-muted)", margin: "0 0 14px", textTransform: "uppercase", letterSpacing: "0.06em" }}>
@@ -349,7 +332,6 @@ export default function TransactionsPage() {
           </section>
         )}
 
-        {/* 2 — COST OF HOLDING LOSERS */}
         {!loading && (
           <section style={{ marginBottom: 36 }}>
             <p style={{ fontSize: 15, fontWeight: 500, color: "var(--color-text-primary)", margin: "0 0 12px" }}>
@@ -367,7 +349,7 @@ export default function TransactionsPage() {
                     fontSize: 28, fontWeight: 500, fontFamily: "var(--font-mono)",
                     color: "var(--color-danger)", margin: "0 0 4px",
                   }}>
-                    €{data.losersCost.averageDailyCost?.toFixed(2)}<span style={{ fontSize: 14, fontWeight: 400 }}>/day</span>
+                    €{data.losersCost.averageDailyCost.toFixed(2)}<span style={{ fontSize: 14, fontWeight: 400 }}>/day</span>
                   </p>
                   <p style={{ fontSize: 11, color: "var(--color-text-muted)", margin: 0 }}>
                     across all losing trades
@@ -408,7 +390,6 @@ export default function TransactionsPage() {
           </section>
         )}
 
-        {/* 3 — BEST MOVE YOU DIDN'T MAKE */}
         {!loading && (
           <section style={{ marginBottom: 36 }}>
             <p style={{ fontSize: 15, fontWeight: 500, color: "var(--color-text-primary)", margin: "0 0 12px" }}>
@@ -419,110 +400,49 @@ export default function TransactionsPage() {
                 {pricesRefreshing
                   ? "Checking current prices…"
                   : !data || data.summary.winCount === 0
-                  ? "Appears once you've closed a profitable trade — shows you which one you should have held longer."
-                  : "None of your profitable exits have gone higher since you sold. Good timing so far."}
+                    ? "Appears once you've closed a profitable trade — shows you which one you should have held longer."
+                    : "None of your profitable exits have gone higher since you sold. Good timing so far."}
               </p>
             ) : (
-            <div style={{
-              backgroundColor: "var(--color-surface)",
-              border: "1px solid var(--color-border)",
-              borderRadius: 10, padding: "20px 24px",
-            }}>
-              <p style={{ fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", margin: "0 0 2px" }}>
-                {assetLabel(data.bestMissedMove)}
-              </p>
-              <p style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-text-muted)", margin: "0 0 20px" }}>
-                Sold {fmtDate(data.bestMissedMove.exitAt)}
-              </p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
-                <div>
-                  <p style={{ fontSize: 11, color: "var(--color-text-muted)", margin: "0 0 4px" }}>You made</p>
-                  <p style={{ fontSize: 20, fontWeight: 500, fontFamily: "var(--font-mono)", color: "var(--color-success)", margin: 0 }}>
-                    +{fmt(data.bestMissedMove.realizedPnL)}
-                  </p>
-                </div>
-                <div>
-                  <p style={{ fontSize: 11, color: "var(--color-text-muted)", margin: "0 0 4px" }}>Left behind</p>
-                  <p style={{ fontSize: 20, fontWeight: 500, fontFamily: "var(--font-mono)", color: "var(--color-danger)", margin: 0 }}>
-                    +{fmt(data.bestMissedMove.missedUpside)}
-                  </p>
-                </div>
-                <div>
-                  <p style={{ fontSize: 11, color: "var(--color-text-muted)", margin: "0 0 4px" }}>Exit → now</p>
-                  <p style={{ fontSize: 14, fontWeight: 500, fontFamily: "var(--font-mono)", color: "var(--color-text-primary)", margin: 0 }}>
-                    {fmtDec(data.bestMissedMove.exitPrice)} → {fmtDec(data.bestMissedMove.currentPrice)}
-                  </p>
-                </div>
-              </div>
-              <p style={{ fontSize: 10, color: "var(--color-text-muted)", margin: "16px 0 0", fontFamily: "var(--font-mono)" }}>
-                {pricesRefreshing ? "Refreshing prices…" : "Current market price"}
-              </p>
-            </div>
-            )}
-          </section>
-        )}
-
-        {/* 4 — BEST / WORST TRADE */}
-        {!loading && (bestTrade || worstTrade) && (
-          <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 36 }}>
-            {bestTrade && (
               <div style={{
                 backgroundColor: "var(--color-surface)",
                 border: "1px solid var(--color-border)",
-                borderRadius: 10, padding: "16px 20px",
+                borderRadius: 10, padding: "20px 24px",
               }}>
-                <p style={{ fontSize: 11, color: "var(--color-text-muted)", margin: "0 0 8px" }}>Best trade</p>
-                <p style={{
-                  fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)",
-                  margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}>
-                  {tradeLabel(bestTrade)}
+                <p style={{ fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)", margin: "0 0 2px" }}>
+                  {assetLabel(data.bestMissedMove)}
                 </p>
-                <p style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-text-muted)", margin: "0 0 10px" }}>
-                  {fmtDate(bestTrade.entryAt)} → {fmtDate(bestTrade.exitAt)}
-                  {bestTrade.holdingDays !== null && ` · ${fmtDays(bestTrade.holdingDays)}`}
+                <p style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-text-muted)", margin: "0 0 20px" }}>
+                  Sold {fmtDate(data.bestMissedMove.exitAt)}
                 </p>
-                <p style={{ fontSize: 20, fontWeight: 500, fontFamily: "var(--font-mono)", color: "var(--color-success)", margin: "0 0 2px" }}>
-                  +{fmt(bestTrade.realizedPnL)}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }}>
+                  <div>
+                    <p style={{ fontSize: 11, color: "var(--color-text-muted)", margin: "0 0 4px" }}>You made</p>
+                    <p style={{ fontSize: 20, fontWeight: 500, fontFamily: "var(--font-mono)", color: "var(--color-success)", margin: 0 }}>
+                      +{fmt(data.bestMissedMove.realizedPnL)}
+                    </p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 11, color: "var(--color-text-muted)", margin: "0 0 4px" }}>Left behind</p>
+                    <p style={{ fontSize: 20, fontWeight: 500, fontFamily: "var(--font-mono)", color: "var(--color-danger)", margin: 0 }}>
+                      +{fmt(data.bestMissedMove.missedUpside)}
+                    </p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 11, color: "var(--color-text-muted)", margin: "0 0 4px" }}>Exit → now</p>
+                    <p style={{ fontSize: 14, fontWeight: 500, fontFamily: "var(--font-mono)", color: "var(--color-text-primary)", margin: 0 }}>
+                      {fmtDec(data.bestMissedMove.exitPrice)} → {fmtDec(data.bestMissedMove.currentPrice)}
+                    </p>
+                  </div>
+                </div>
+                <p style={{ fontSize: 10, color: "var(--color-text-muted)", margin: "16px 0 0", fontFamily: "var(--font-mono)" }}>
+                  {pricesRefreshing ? "Refreshing prices…" : data.bestMissedMove.priceAsOf ? `Price as of ${fmtDate(data.bestMissedMove.priceAsOf)}` : "Current market price"}
                 </p>
-                {bestTrade.realizedPnLPct !== null && (
-                  <p style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "var(--color-success)", margin: 0 }}>
-                    {fmtPct(bestTrade.realizedPnLPct)}
-                  </p>
-                )}
-              </div>
-            )}
-            {worstTrade && (
-              <div style={{
-                backgroundColor: "var(--color-surface)",
-                border: "1px solid var(--color-border)",
-                borderRadius: 10, padding: "16px 20px",
-              }}>
-                <p style={{ fontSize: 11, color: "var(--color-text-muted)", margin: "0 0 8px" }}>Worst trade</p>
-                <p style={{
-                  fontSize: 13, fontWeight: 500, color: "var(--color-text-primary)",
-                  margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                }}>
-                  {tradeLabel(worstTrade)}
-                </p>
-                <p style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--color-text-muted)", margin: "0 0 10px" }}>
-                  {fmtDate(worstTrade.entryAt)} → {fmtDate(worstTrade.exitAt)}
-                  {worstTrade.holdingDays !== null && ` · ${fmtDays(worstTrade.holdingDays)}`}
-                </p>
-                <p style={{ fontSize: 20, fontWeight: 500, fontFamily: "var(--font-mono)", color: "var(--color-danger)", margin: "0 0 2px" }}>
-                  {fmt(worstTrade.realizedPnL)}
-                </p>
-                {worstTrade.realizedPnLPct !== null && (
-                  <p style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "var(--color-danger)", margin: 0 }}>
-                    {fmtPct(worstTrade.realizedPnLPct)}
-                  </p>
-                )}
               </div>
             )}
           </section>
         )}
 
-        {/* 5 — WHAT HAPPENED AFTER YOU SOLD */}
         {!loading && (() => {
           if (!data?.postSaleOutcomes) {
             return (
@@ -534,8 +454,8 @@ export default function TransactionsPage() {
                   {pricesRefreshing
                     ? "Checking current prices…"
                     : !data || data.summary.totalClosed === 0
-                    ? "No completed trades yet — this shows whether the stocks you sold kept rising or fell after you exited."
-                    : "No price data available for your sold positions. Prices will load automatically."}
+                      ? "No completed trades yet — this shows whether the stocks you sold kept rising or fell after you exited."
+                      : "No price data available for your sold positions. Prices will load automatically."}
                 </p>
               </section>
             )
@@ -567,7 +487,6 @@ export default function TransactionsPage() {
                 </p>
               </div>
 
-              {/* summary bar */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12 }}>
                 <div style={{
                   backgroundColor: "var(--color-surface)",
@@ -609,8 +528,9 @@ export default function TransactionsPage() {
                   const deltaLabel = isContinuedUp
                     ? `missed ${fmt(item.deltaSinceExit)}`
                     : isReversedDown
-                    ? `saved ${fmt(Math.abs(item.deltaSinceExit))}`
-                    : "roughly flat"
+                      ? `saved ${fmt(Math.abs(item.deltaSinceExit))}`
+                      : "roughly flat"
+
                   return (
                     <div key={`${item.ticker}-${i}`} style={{
                       display: "flex", alignItems: "center", gap: 16,
@@ -647,6 +567,11 @@ export default function TransactionsPage() {
                             ({fmtPct(item.deltaSinceExitPct)})
                           </span>
                         </p>
+                        {item.priceAsOf && (
+                          <p style={{ fontSize: 10, color: "var(--color-text-muted)", margin: "4px 0 0", fontFamily: "var(--font-mono)" }}>
+                            {fmtDate(item.priceAsOf)}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )
@@ -666,10 +591,7 @@ export default function TransactionsPage() {
           )
         })()}
 
-        {/* 6 + 7 — COMPLETED TRADES + ALL ACTIVITY */}
         <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>
-
-          {/* COMPLETED TRADES */}
           <div>
             <div style={{ marginBottom: 12 }}>
               <p style={{ fontSize: 15, fontWeight: 500, color: "var(--color-text-primary)", margin: "0 0 8px" }}>
@@ -770,7 +692,6 @@ export default function TransactionsPage() {
             )}
           </div>
 
-          {/* ALL ACTIVITY */}
           <div>
             <div style={{ marginBottom: 12 }}>
               <p style={{ fontSize: 15, fontWeight: 500, color: "var(--color-text-primary)", margin: "0 0 8px" }}>
@@ -817,8 +738,8 @@ export default function TransactionsPage() {
                     const valA = Math.abs(a.shares) * a.avgPrice
                     const valB = Math.abs(b.shares) * b.avgPrice
                     return activitySort === "highest" ? valB - valA :
-                           activitySort === "lowest" ? valA - valB :
-                           (b.executedAt ?? "").localeCompare(a.executedAt ?? "")
+                      activitySort === "lowest" ? valA - valB :
+                        (b.executedAt ?? "").localeCompare(a.executedAt ?? "")
                   })
                   .map((tx, i, arr) => (
                     <div key={tx.id} style={{
@@ -856,9 +777,7 @@ export default function TransactionsPage() {
               </div>
             )}
           </div>
-
         </section>
-
       </div>
     </div>
   )

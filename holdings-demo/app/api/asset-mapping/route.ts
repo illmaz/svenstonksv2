@@ -48,6 +48,7 @@ export async function POST(req: Request) {
         productName,
         ticker,
         region,
+        
         category,
       },
     })
