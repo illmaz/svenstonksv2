@@ -3,5 +3,5 @@ import { clearSession } from "@/lib/auth/session"
 
 export async function POST(request: Request) {
   await clearSession()
-  return NextResponse.redirect(new URL("/sign-in", request.url))
+  return NextResponse.redirect(new URL("/sign-in", request.url), 303)
 }

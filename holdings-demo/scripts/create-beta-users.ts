@@ -1,6 +1,6 @@
 import "dotenv/config"
-import { prisma } from "@/lib/prisma"
-import { hashPassword } from "@/lib/auth/hash"
+import { prisma } from "../lib/prisma"
+import { hashPassword } from "../lib/auth/hash"
 
 const BETA_USERS = [
   { username: "efe",     displayName: "Efe",     password: "efe123"     },
