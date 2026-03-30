@@ -82,6 +82,39 @@ export function buildLookthroughExposure(
     const snapshot = findMatchingEtfSnapshot(position, snapshots)
 
     if (!snapshot) {
+      // Direct asset (stock, option, etc.) — add as its own single exposure entry
+      const name = position.productName || position.ticker || position.isin || "Unknown"
+      const key =
+        normalize(position.isin) ??
+        normalize(position.ticker) ??
+        normalizeHoldingName(name)
+
+      const existing = exposureMap.get(key)
+      const exposureValue = position.investedValue
+      const exposurePctOfPortfolio =
+        totalPortfolioInvested > 0 ? (exposureValue / totalPortfolioInvested) * 100 : 0
+
+      if (!existing) {
+        exposureMap.set(key, {
+          name,
+          ticker: position.ticker,
+          isin: position.isin,
+          sector: null,
+          country: null,
+          exposureValue,
+          exposurePctOfPortfolio,
+        })
+      } else {
+        const nextExposureValue = existing.exposureValue + exposureValue
+        exposureMap.set(key, {
+          ...existing,
+          exposureValue: nextExposureValue,
+          exposurePctOfPortfolio:
+            totalPortfolioInvested > 0
+              ? (nextExposureValue / totalPortfolioInvested) * 100
+              : 0,
+        })
+      }
       continue
     }
 
