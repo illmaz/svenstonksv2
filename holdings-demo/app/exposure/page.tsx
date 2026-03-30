@@ -77,15 +77,19 @@ const navHrefs: Record<string, string> = {
 
 const NAV_LINKS = ["today", "portfolio", "transactions", "x-ray", "diversification", "events", "news"] as const
 
+type Mode = "total" | "direct" | "etf"
+
 export default function ExposurePage() {
   const [data, setData] = useState<LookthroughData | null>(null)
   const [totalInvested, setTotalInvested] = useState<number | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mode, setMode] = useState<Mode>("total")
 
   useEffect(() => {
+    setLoading(true)
     async function loadAll() {
       const [lookthroughR, summaryR] = await Promise.allSettled([
-        fetch("/api/exposure/lookthrough").then((r) => r.json()),
+        fetch(`/api/exposure/lookthrough?mode=${mode}`).then((r) => r.json()),
         fetch("/api/portfolio/summary").then((r) => r.json()),
       ])
       if (lookthroughR.status === "fulfilled") setData(lookthroughR.value)
@@ -93,7 +97,7 @@ export default function ExposurePage() {
       setLoading(false)
     }
     loadAll()
-  }, [])
+  }, [mode])
 
   const allExposure = data?.allExposure ?? []
   const sectorExposure = data?.sectorExposure ?? []
@@ -158,9 +162,24 @@ export default function ExposurePage() {
           <p style={{ fontSize: 22, fontWeight: 500, color: "var(--color-text-primary)", margin: "0 0 6px" }}>
             Portfolio X-ray
           </p>
-          <p style={{ fontSize: 13, color: "var(--color-text-muted)", margin: 0 }}>
-            What you actually own inside your ETFs
-          </p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <p style={{ fontSize: 13, color: "var(--color-text-muted)", margin: 0 }}>
+              {mode === "total" ? "ETF lookthrough + direct holdings" : mode === "etf" ? "ETF holdings expanded into constituents" : "Direct holdings only"}
+            </p>
+            <div style={{ display: "flex", gap: 4 }}>
+              {(["total", "direct", "etf"] as Mode[]).map((m) => (
+                <button key={m} onClick={() => setMode(m)} style={{
+                  padding: "4px 12px", borderRadius: 20, fontSize: 12, cursor: "pointer",
+                  fontWeight: mode === m ? 500 : 400,
+                  color: mode === m ? "var(--color-surface)" : "var(--color-text-secondary)",
+                  backgroundColor: mode === m ? "var(--color-text-primary)" : "transparent",
+                  border: "1px solid var(--color-border)",
+                }}>
+                  {m}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* HERO STAT ROW */}

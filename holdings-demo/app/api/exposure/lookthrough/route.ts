@@ -23,10 +23,13 @@ function isImplementedProvider(provider: string | null): boolean {
   )
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getCurrentUser()
     if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 })
+
+    const url = new URL(request.url)
+    const mode = (url.searchParams.get("mode") ?? "total") as "total" | "direct" | "etf"
 
     const rows = await prisma.holding.findMany({ where: { userId: user.id } })
     const portfolio = buildPortfolioFromHoldings(rows)
@@ -54,13 +57,20 @@ export async function GET() {
 
     const { snapshots: liveSnapshots, failedProviders } = await fetchSnapshots(openPositions)
 
-    const exposure = buildLookthroughExposure(openPositions, liveSnapshots)
+    const positionsForMode = mode === "total"
+      ? openPositions
+      : openPositions.filter((position) => {
+          const isEtf = getEtfProvider({ isin: position.isin, ticker: position.ticker }) !== null
+          return mode === "etf" ? isEtf : !isEtf
+        })
+
+    const exposure = buildLookthroughExposure(positionsForMode, liveSnapshots)
     const sectorExposure = buildSectorExposure(exposure)
     const countryExposure = buildCountryExposure(exposure)
-    const overlapExposure = buildOverlapExposure(openPositions, liveSnapshots)
+    const overlapExposure = buildOverlapExposure(positionsForMode, liveSnapshots)
 
     return Response.json({
-      totalOpenPositions: openPositions.length,
+      totalOpenPositions: positionsForMode.length,
       supportedPositionCount: supportedPositions.length,
       unsupportedPositions,
       failedProviders,
