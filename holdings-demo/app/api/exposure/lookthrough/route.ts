@@ -64,9 +64,10 @@ export async function GET(request: Request) {
           return mode === "etf" ? isEtf : !isEtf
         })
 
+    const totalPortfolioInvested = positionsForMode.reduce((s, p) => s + p.investedValue, 0)
     const exposure = buildLookthroughExposure(positionsForMode, liveSnapshots)
-    const sectorExposure = buildSectorExposure(exposure)
-    const countryExposure = buildCountryExposure(exposure)
+    const sectorExposure = buildSectorExposure(exposure, totalPortfolioInvested)
+    const countryExposure = buildCountryExposure(exposure, totalPortfolioInvested)
     const overlapExposure = buildOverlapExposure(positionsForMode, liveSnapshots)
 
     return Response.json({

@@ -1,14 +1,14 @@
 import { UnderlyingExposure, SectorExposure } from "./types"
 
 export function buildSectorExposure(
-  underlyingExposure: UnderlyingExposure[]
+  underlyingExposure: UnderlyingExposure[],
+  totalPortfolioInvested?: number
 ): SectorExposure[] {
   const sectorMap = new Map<string, SectorExposure>()
 
-  const totalPortfolioExposure = underlyingExposure.reduce(
-    (sum, row) => sum + row.exposureValue,
-    0
-  )
+  const totalPortfolioExposure =
+    totalPortfolioInvested ??
+    underlyingExposure.reduce((sum, row) => sum + row.exposureValue, 0)
 
   for (const row of underlyingExposure) {
     const sector = row.sector?.trim() || "Other"

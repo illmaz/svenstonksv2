@@ -150,11 +150,12 @@ export async function GET() {
         )
 
     // Build underlying exposure
+    const totalPortfolioInvested = openPositions.reduce((s: number, p: { investedValue: number }) => s + p.investedValue, 0)
     const underlyingExposure = buildLookthroughExposure(openPositions, snapshots)
 
     // Build sector, country, overlap exposures
-    const sectorExposure = buildSectorExposure(underlyingExposure)
-    const countryExposure = buildCountryExposure(underlyingExposure)
+    const sectorExposure = buildSectorExposure(underlyingExposure, totalPortfolioInvested)
+    const countryExposure = buildCountryExposure(underlyingExposure, totalPortfolioInvested)
     const overlapExposure = buildOverlapExposure(openPositions, snapshots)
 
     // Build theme exposure

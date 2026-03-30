@@ -35,6 +35,7 @@ export async function getDiversificationScore(
   openPositions: OpenPosition[],
   snapshots: EtfHoldingsSnapshot[]
 ): Promise<DiversificationResult> {
+  const totalPortfolioInvested = openPositions.reduce((s, p) => s + p.investedValue, 0)
   const underlyingExposure = buildLookthroughExposure(openPositions, snapshots)
 
   // 1. Company spread — Herfindahl index
@@ -63,7 +64,7 @@ export async function getDiversificationScore(
     "Consumer Discretionary": 11,
     Industrials: 10,
   }
-  const sectorExposure = buildSectorExposure(underlyingExposure)
+  const sectorExposure = buildSectorExposure(underlyingExposure, totalPortfolioInvested)
   const sectorMap = new Map(sectorExposure.map((s) => [s.sector, s.exposurePctOfPortfolio]))
   let sectorPenalty = 0
   let mostOverweightSector = ""
@@ -90,7 +91,7 @@ export async function getDiversificationScore(
   }
 
   // 3. Country spread
-  const countryExposure = buildCountryExposure(underlyingExposure)
+  const countryExposure = buildCountryExposure(underlyingExposure, totalPortfolioInvested)
   const usEntry = countryExposure.find(
     (c) => c.country === "United States" || c.country === "US"
   )
