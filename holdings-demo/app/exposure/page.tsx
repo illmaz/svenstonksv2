@@ -9,6 +9,7 @@ type ExposureItem = {
   country: string | null
   exposurePctOfPortfolio: number
   exposureValue: number
+  source?: "direct" | "etf"
 }
 
 type SectorItem = {
@@ -245,6 +246,17 @@ export default function ExposurePage() {
                     }}>
                       {item.sector ?? "—"}
                     </span>
+
+                    {mode === "total" && item.source && (
+                      <span style={{
+                        flexShrink: 0, marginRight: 8,
+                        fontSize: 10, padding: "1px 6px", borderRadius: 10,
+                        color: item.source === "direct" ? "var(--color-accent)" : "var(--color-text-muted)",
+                        border: `1px solid ${item.source === "direct" ? "var(--color-accent)" : "var(--color-border)"}`,
+                      }}>
+                        {item.source}
+                      </span>
+                    )}
 
                     <div style={{ flex: 1, minWidth: 60, marginRight: 12, height: 4, borderRadius: 2, backgroundColor: "#f0efe9" }}>
                       <div style={{

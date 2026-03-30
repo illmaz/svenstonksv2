@@ -25,6 +25,7 @@ export type UnderlyingExposure = {
   country: string | null
   exposureValue: number
   exposurePctOfPortfolio: number
+  source: "direct" | "etf"
 }
 
 export type SectorExposure = {

@@ -103,6 +103,7 @@ export function buildLookthroughExposure(
           country: null,
           exposureValue,
           exposurePctOfPortfolio,
+          source: "direct",
         })
       } else {
         const nextExposureValue = existing.exposureValue + exposureValue
@@ -152,6 +153,7 @@ export function buildLookthroughExposure(
             totalPortfolioInvested > 0
               ? (exposureValue / totalPortfolioInvested) * 100
               : 0,
+          source: "etf",
         })
         continue
       }
