@@ -154,18 +154,20 @@ export async function GET() {
 
     // Compute current value for each open position
     let totalOpenCurrentValue = 0
+    let totalPricedInvestedValue = 0
     let pricedOpenPositionsCount = 0
     for (const position of openPositions) {
       const key = `${(position.ticker ?? '').toUpperCase()}:${(position.exchange ?? '').toUpperCase()}`
       const price = priceMap.get(key)
       if (price !== undefined) {
         totalOpenCurrentValue += price * position.sharesOpen
+        totalPricedInvestedValue += position.investedValue
         pricedOpenPositionsCount++
       }
     }
 
     const hasPricing = pricedOpenPositionsCount > 0 && totalOpenCurrentValue > 0
-    const totalUnrealizedPnL = hasPricing ? totalOpenCurrentValue - totalOpenInvestedValue : null
+    const totalUnrealizedPnL = hasPricing ? totalOpenCurrentValue - totalPricedInvestedValue : null
     const netPnL = hasPricing ? totalRealizedPnL + (totalUnrealizedPnL ?? 0) : null
     const returnOnCapitalPct = hasPricing && lifetimeCapitalDeployed > 0
       ? ((netPnL ?? 0) / lifetimeCapitalDeployed) * 100

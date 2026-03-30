@@ -13,6 +13,20 @@ function normalize(value: string | null | undefined): string | null {
   return trimmed ? trimmed.toUpperCase() : null
 }
 
+function normalizeName(value: string): string {
+  return value
+    .trim()
+    .toUpperCase()
+    .replace(/\s*USD\s*\d+(?:\.\d+)?$/g, "")
+    .replace(/[.-]/g, " ")
+    .replace(/\bCL\s+A\b/g, "CLASS A")
+    .replace(/\bCL\s+C\b/g, "CLASS C")
+    .replace(/\s+NPV$/g, "")
+    .replace(/\s+ADR$/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
 function findMatchingEtfSnapshot(
   position: OpenPositionLike,
   snapshots: EtfHoldingsSnapshot[]
@@ -66,10 +80,22 @@ export function buildOverlapExposure(
         normalize(constituent.ticker) ??
         constituent.name.trim().toUpperCase()
 
-      const existing = overlapMap.get(key)
+      let existingKey = key
+      let existing = overlapMap.get(key)
 
       if (!existing) {
-        overlapMap.set(key, {
+        const canonicalName = normalizeName(constituent.name)
+        for (const [candidateKey, candidateEntry] of overlapMap.entries()) {
+          if (normalizeName(candidateEntry.name) === canonicalName) {
+            existingKey = candidateKey
+            existing = candidateEntry
+            break
+          }
+        }
+      }
+
+      if (!existing) {
+        overlapMap.set(existingKey, {
           name: constituent.name,
           ticker: constituent.ticker,
           isin: constituent.isin,
@@ -90,7 +116,7 @@ export function buildOverlapExposure(
 
       const nextExposureValue = existing.exposureValue + exposureValue
 
-      overlapMap.set(key, {
+      overlapMap.set(existingKey, {
         ...existing,
         contributingEtfs: nextEtfs,
         contributingEtfCount: nextEtfs.length,

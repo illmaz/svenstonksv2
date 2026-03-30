@@ -132,6 +132,7 @@ export async function GET() {
     )
 
     const priceMap = new Map<string, PriceCacheRecord>()
+    const priceByTicker = new Map<string, PriceCacheRecord>()
 
     for (const price of priceCache) {
       const ticker = normalizeTicker(price.ticker)
@@ -143,6 +144,9 @@ export async function GET() {
 
       if (!priceMap.has(key)) {
         priceMap.set(key, price)
+      }
+      if (!priceByTicker.has(ticker)) {
+        priceByTicker.set(ticker, price)
       }
     }
 
@@ -158,7 +162,9 @@ export async function GET() {
 
       const normalizedExchange = normalizeExchange(position.exchange)
       const priceKey = normalizedTicker ? `${normalizedTicker}:${normalizedExchange}` : undefined
-      const priceRow = priceKey ? priceMap.get(priceKey) : undefined
+      const priceRow = priceKey
+        ? (priceMap.get(priceKey) ?? priceByTicker.get(normalizedTicker!))
+        : undefined
 
       const currentPrice = priceRow?.price ?? null
       const investedValue = position.investedValue
